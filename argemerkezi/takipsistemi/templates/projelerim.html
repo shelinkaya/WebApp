@@ -1,0 +1,22 @@
+<!-- templates/projelerim.html -->
+<h1>Projelerim</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Proje Adı</th>
+            <th>Proje Sahibi</th>
+            <th>Başlangıç Tarihi</th>
+            <th>Bitiş Tarihi</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for proje in projeler %}
+            <tr>
+                <td>{{ proje.proje_adi }}</td>
+                <td>{{ proje.proje_sahibi }}</td>
+                <td>{{ proje.baslangic_tarihi }}</td>
+                <td>{{ proje.bitis_tarihi }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

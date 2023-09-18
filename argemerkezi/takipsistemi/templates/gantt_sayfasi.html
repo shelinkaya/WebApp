@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gantt Şeması</title>
+    <!-- dhtmlxGantt kütüphanesi için CSS ve JavaScript dosyalarını ekleyin -->
+    <link rel="stylesheet" type="text/css" href="/static/gantt_trial/codebase/dhtmlxgantt.css">
+    <script src="/static/gantt_trial/codebase/dhtmlxgantt.js"></script>
+</head>
+<body>
+    <h1>Proje Gantt Şeması</h1>
+    
+    <!-- Gantt şemasının yer alacağı div -->
+    <div id="gantt_here" style="width: 100%; height: 500px;"></div>
+
+    <script>
+        // Tarih aralığını özelleştirmek için gantt.config.start_date ve gantt.config.end_date'i ayarlayın
+        gantt.config.start_date = new Date(2021, 0, 1); // Yıl, Ay (0'dan başlar), Gün
+        gantt.config.end_date = new Date(2023, 11, 101);  // Yıl, Ay (0'dan başlar), Gün
+
+        // Gantt şemasını başlatın
+        gantt.init("gantt_here");
+        
+        // Gantt şemasına görevleri ve zaman çizelgesi verilerini ekleyin
+        gantt.parse({
+            data: [
+                { id: 1, text: "Görev 1", start_date: "2023-09-10", duration: 5 },
+                { id: 2, text: "Görev 2", start_date: "2023-09-15", duration: 3 }
+                // Diğer görevleri buraya ekleyin
+            ]
+        });
+    </script>
+</body>
+</html>

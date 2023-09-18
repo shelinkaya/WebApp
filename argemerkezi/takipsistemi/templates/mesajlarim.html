@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <script src="{% static 'js/mesajlarim.js' %}"></script>
+
+<head>
+    <title>Mesajlaşma Platformu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            background-color: #04172b;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #eeeeee;
+            border: 1px solid #4b0a0a;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        form {
+            background-color: #fff;
+            border: 1px solid #4b0a0a;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: #04172b;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .message {
+            background-color: #500808;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .emoji-selector {
+            margin-top: 20px;
+        }
+
+        .emoji {
+            font-size: 24px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .sticker-gallery img {
+            width: 100px;
+            height: 100px;
+            margin-right: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mesajlaşma Platformu</h1>
+
+    <h2>Arkadaşlarım</h2>
+    <ul>
+        {% for friend in my_friends %}
+            <li>
+                {{ friend.username }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Mesaj Gönder</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.recipient.label_tag }} {{ form.recipient }}
+        {{ form.content.label_tag }} {{ form.content }}
+        {{ form.media_file.label_tag }} {{ form.media_file }}
+        <button type="submit">Gönder</button>
+    </form>
+    <h2>Mesajlarım</h2>
+<ul>
+    {% for chat in chats %}
+        <li>
+            <a href="{% url 'chat_page' chat_id=friend_chat_id %}">{{ friend.username }}</a>
+
+        </li>
+    {% endfor %}
+</ul>
+
+    
+    <!-- Mesajlar gösterilebilir, bu kodu geliştirmek size kalmış -->
+    <h2>Mesajlarınız</h2>
+    <ul>
+        {% for message in messages %}
+            <li>
+                <strong>Gönderen:</strong> {{ message.sender.username }}<br>
+                <strong>Mesaj:</strong> {{ message.content }}<br>
+                <strong>Zaman:</strong> {{ message.timestamp }}
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

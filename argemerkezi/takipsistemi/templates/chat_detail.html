@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mesajlaşma Platformu</title>
+</head>
+<body>
+    <h1>Mesajlaşma Platformu</h1>
+    
+    <!-- Kullanıcı Arayüzü İyileştirmeleri -->
+    <h2>Arkadaşlarım</h2>
+    <ul>
+        {% for friend in my_friends %}
+            <li>{{ friend.username }}
+                <a href="{% url 'start_chat' recipient_username=friend.username %}">Sohbet Başlat</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <!-- Kullanıcı Arayüzü İyileştirmeleri -->
+
+    <h2>Mesaj Gönder</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="file" name="media_file">
+        <button type="submit">Gönder</button>
+    </form>
+
+    <!-- Mesaj Görüntüleme ve Yanıtla -->
+    <h2>Sohbet</h2>
+    <ul>
+        {% for message in selected_chat.messages.all %}
+            <li>
+                <strong>From:</strong> {{ message.sender.username }}<br>
+                <strong>Message:</strong> {{ message.content }}<br>
+                <strong>Timestamp:</strong> {{ message.timestamp }}
+            </li>
+        {% endfor %}
+    </ul>
+    
+    <!-- Mesaj Geçmişi ve Arama -->
+    <h2>Mesaj Geçmişi</h2>
+    {% for message in message_history_data %}
+        <div class="message">
+            <p><strong>From:</strong> {{ message.sender }}</p>
+            <p><strong>Message:</strong> {{ message.content }}</p>
+            <!-- Diğer mesaj özellikleri -->
+        </div>
+    {% endfor %}
+    
+    <!-- Emoji ve Sticker Desteği -->
+    <div class="emoji-selector">
+        <span class="emoji">😀</span>
+        <span class="emoji">🥰</span>
+        <!-- Diğer emoji seçenekleri -->
+    </div>
+    <div class="sticker-gallery">
+        <img src="sticker1.png" alt="Sticker 1">
+        <img src="sticker2.png" alt="Sticker 2">
+        <!-- Diğer sticker seçenekleri -->
+    </div>
+</body>
+</html>

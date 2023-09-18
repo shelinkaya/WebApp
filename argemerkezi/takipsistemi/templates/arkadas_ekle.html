@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Arkadaş Ekle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            background-color: #071a2e;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 80%;
+            margin: 20px;
+        }
+
+        .left {
+            width: 65%;
+        }
+
+        .right {
+            width: 30%;
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .right h2 {
+            margin-top: 0;
+            color: #4d1b04; /* Koyu mavi renk */
+        }
+
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .messages li {
+            background-color: #e6e6e6;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+        }
+
+        form {
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button[type="submit"] {
+            background-color: #04162b; /* Koyu mavi renk */
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #04162b; /* Daha koyu mavi hover rengi */
+        }
+
+        .friends {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .friends h2 {
+            color: #4d1b04; /* Koyu mavi renk */
+            text-align: center;
+        }
+
+        .friends ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .friends ul li {
+            margin: 5px 0;
+            color: #000; /* Siyah renk */
+        }
+    </style>
+</head>
+<body>
+    <h1>Arkadaş Ekle</h1>
+    
+    <!-- Kullanıcıya mesajları göstermek için -->
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <label for="username_or_email">Kullanıcı Adı veya E-posta:</label>
+        <input type="text" name="username_or_email" required>
+        
+        <button type="submit">Arkadaşlık İsteği Gönder</button>
+    </form>
+    
+    <h2>Gelen Arkadaşlık İstekleri</h2>
+    <ul>
+        {% for request in incoming_friend_requests %}
+            <li>{{ request.from_user }} -
+                <form method="post" action="{% url 'accept_request' request.id %}">
+                    {% csrf_token %}
+                    <button type="submit">Onayla</button>
+                </form>
+                <form method="post" action="{% url 'reject_request' request.id %}">
+                    {% csrf_token %}
+                    <button type="submit">Reddet</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Gönderilen Arkadaşlık İstekleri</h2>
+    <ul>
+        {% for request in outgoing_requests %}
+            <li>{{ request.to_user }} - {% if not request.is_accepted %}Onay Bekliyor{% endif %}</li>
+        {% endfor %}
+    </ul>
+    
+    <div class="friends">
+        <h2>Arkadaşlarım</h2>
+        <ul>
+            {% for friend in my_friends %}
+                <li>{{ friend.username }}</li>
+            {% empty %}
+                <li>Henüz arkadaşınız yok.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

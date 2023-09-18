@@ -1,0 +1,83 @@
+/* Takvim hücrelerinin genel stil */
+.fc-day {
+    border: 1px solid #ddd;
+    padding: 5px;
+    text-align: center;
+}
+
+/* Etkinlik kutularının stil */
+.fc-event {
+    background-color: #3498db;
+    color: #fff;
+    padding: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 2px;
+}
+
+/* Etkinlik kutularının üzerine gelindiğinde stil */
+.fc-event:hover {
+    background-color: #2980b9;
+}
+
+/* Takvim başlıklarının stil */
+.fc-header-toolbar {
+    background-color: #f0f0f0;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+/* Takvim başlık yazılarının stil */
+.fc-header-toolbar h2 {
+    font-size: 18px;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* Günlük saat etiketlerinin stil */
+.fc-slats th {
+    border-top: none;
+    border-bottom: 1px solid #ddd;
+    padding: 10px;
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+/* Günlerin ve saatlerin kutularının stil */
+.fc-timegrid-slot,
+.fc-daygrid-day {
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    padding: 10px;
+    background-color: #fff;
+}
+
+/* Günlerin ve saatlerin kutularının hover stil */
+.fc-timegrid-slot:hover,
+.fc-daygrid-day:hover {
+    background-color: #f0f0f0;
+}
+
+/* Etkinlik düzenleme modalının stil */
+.modal-content {
+    border-radius: 10px;
+}
+
+/* Modal başlığının stil */
+.modal-title {
+    font-size: 20px;
+    color: #333;
+}
+
+/* Modal içeriğinin stil */
+.modal-body {
+    padding: 20px;
+}
+
+/* Modal düğmelerinin stil */
+.modal-footer {
+    padding: 15px;
+    border-top: none;
+    background-color: #f0f0f0;
+}

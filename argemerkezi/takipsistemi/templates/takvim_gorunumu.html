@@ -1,0 +1,193 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ajanda</title>
+    <link rel="stylesheet" href="{% static 'fullcalendar/core/main.css' %}">
+    <link rel="stylesheet" href="{% static 'fullcalendar/daygrid/main.css' %}">
+    <style>
+        h2 {
+            color: #04162b; /* Koyu mavi renk */
+            text-align: center;
+            margin-top: 20px;
+        }
+    
+        form {
+            text-align: center;
+            margin: 20px;
+        }
+    
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #04162b; /* Koyu mavi renk */
+        }
+    
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    
+        button[type="submit"] {
+            background-color: #04162b; /* Koyu mavi renk */
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    
+        button[type="submit"]:hover {
+            background-color: #04162b; /* Daha koyu mavi hover rengi */
+        }
+
+        /* Eklenen stiller */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-content {
+            background-color: #f4f4f4;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover {
+            color: #f00;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Ajanda</h1>
+    <div id="takvim"></div>
+
+    <h2>Etkinlik Ekle</h2>
+    <form method="post" id="etkinlikForm">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Ekle</button>
+    </form>
+
+    <!-- Etkinlik Düzenleme Modal -->
+    <div id="editEventModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Etkinliği Düzenle</h2>
+            <form id="editEventForm">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Kaydet</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Etkinlik Detayları Modal -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Etkinlik Detayları</h2>
+            <div id="eventDetails"></div>
+        </div>
+    </div>
+
+    <script src="{% static 'fullcalendar/core/main.js' %}"></script>
+    <script src="{% static 'fullcalendar/daygrid/main.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Etkinlikleri yerel depolamadan çekmek
+            var savedEtkinlikler = localStorage.getItem('etkinlikler');
+            var etkinlikler = [];
+
+            if (savedEtkinlikler) {
+                etkinlikler = JSON.parse(savedEtkinlikler);
+            }
+
+            var calendarEl = document.getElementById('takvim');
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                plugins: ['dayGrid'],
+                events: etkinlikler,
+                eventClick: function(info) {
+                    var title = info.event.title;
+                    var description = info.event.extendedProps.description;
+
+                    // Etkinlik detaylarını görüntüleme modal penceresini açma
+                    var detailsModal = document.getElementById('detailsModal');
+                    var eventDetails = document.getElementById('eventDetails');
+                    eventDetails.innerHTML = '<h3>' + title + '</h3><p>' + description + '</p>';
+                    detailsModal.style.display = 'block';
+                }
+            });
+
+            calendar.render();
+
+            // Etkinlik ekleme formu
+            var form = document.getElementById('etkinlikForm');
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                var title = document.querySelector('#id_title').value;
+                var start_date = document.querySelector('#id_start_date').value;
+                var end_date = document.querySelector('#id_end_date').value;
+                var description = document.querySelector('#id_description').value;
+
+                var newEvent = {
+                    title: title,
+                    start: start_date,
+                    end: end_date,
+                    description: description
+                };
+
+                // Yeni etkinliği yerel depolamaya ekleyin
+                etkinlikler.push(newEvent);
+                localStorage.setItem('etkinlikler', JSON.stringify(etkinlikler));
+
+                calendar.addEvent(newEvent);
+
+                // Formu temizleme (isteğe bağlı)
+                form.reset();
+            });
+
+            // Modal pencereleri kapatma işlevi
+            var modals = document.getElementsByClassName('modal');
+            for (var i = 0; i < modals.length; i++) {
+                var modal = modals[i];
+                modal.querySelector('.close').addEventListener('click', function() {
+                    modal.style.display = 'none';
+                });
+            }
+
+            // Sayfa dışına tıklandığında modal pencerelerini kapatma
+            window.addEventListener('click', function(event) {
+                for (var i = 0; i < modals.length; i++) {
+                    var modal = modals[i];
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

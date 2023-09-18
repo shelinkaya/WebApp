@@ -1,0 +1,101 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .chat-container {
+            width: 80%;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-header {
+            background-color: #04172b;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .message-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .message {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .message .sender {
+            font-weight: bold;
+        }
+
+        .message .timestamp {
+            color: #888;
+        }
+
+        .message-input {
+            display: flex;
+        }
+
+        .message-input textarea {
+            width: 80%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: none;
+        }
+
+        .message-input button {
+            background-color: #04172b;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+    </style>
+
+<head>
+    <title>Chat Page</title>
+</head>
+<body>
+    <h1>Chat Page</h1>
+
+    <h2>Mesajlar</h2>
+    <ul>
+        {% for message in messages %}
+            <li>
+                <strong>Gönderen:</strong> {{ message.sender.username }}<br>
+                <strong>Mesaj:</strong> {{ message.content }}<br>
+                <strong>Zaman:</strong> {{ message.timestamp }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Yeni Mesaj Gönder</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.content.label_tag }} {{ form.content }}
+        {{ form.media_file.label_tag }} {{ form.media_file }}
+        <button type="submit">Gönder</button>
+    </form>
+</body>
+</html>
+
