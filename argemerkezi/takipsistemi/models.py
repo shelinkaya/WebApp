@@ -84,18 +84,17 @@ class Message(models.Model):
 from django.db import models
 import uuid
 
-import uuid
+
 from django.db import models
 
 class Etkinlik(models.Model):
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200)  # title alanını nullable olarak bırakın
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField()
 
     def __str__(self):
         return self.title
-
 
 
 

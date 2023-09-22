@@ -29,4 +29,6 @@ urlpatterns = [
     path('proje_olustur/', views.proje_olustur, name='proje_olustur'),
     path('chat_page/<int:chat_id>/', views.chat_page, name='chat_page'),
     path('logout/', views.logout_view, name='logout'),
+    path('add_event/', views.add_event, name='add_event'),
+    path('delete_event/<int:event_id>/', views.delete_event, name='delete_event'),
 ]

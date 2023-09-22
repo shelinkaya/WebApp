@@ -317,11 +317,37 @@ def start_chat(request, recipient_username):
     
     return redirect('chat_detail', chat_id=new_chat.id)
 
+from django.shortcuts import render, redirect, get_object_or_404
+from takipsistemi.models import Etkinlik
+from takipsistemi.forms import EtkinlikForm
+
 def takvim_gorunumu(request):
     etkinlikler = Etkinlik.objects.all()
     form = EtkinlikForm()
 
     return render(request, 'takvim_gorunumu.html', {'etkinlikler': etkinlikler, 'form': form})
+
+def add_event(request):
+    if request.method == 'POST':
+        form = EtkinlikForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('takvim_gorunumu')
+    else:
+        form = EtkinlikForm()
+    return render(request, 'takvim_gorunumu.html', {'form': form})
+
+def delete_event(request, event_id):
+    if request.method == 'DELETE':
+        try:
+            etkinlik = Etkinlik.objects.get(pk=event_id)
+            etkinlik.delete()
+            return JsonResponse({'success': True})
+        except Etkinlik.DoesNotExist:
+            return JsonResponse({'success': False})
+    return JsonResponse({'success': False})
+
+
 
 def chat_detail(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
