@@ -82,22 +82,43 @@
 
     <h1>Ajanda</h1>
     <div id="takvim"></div>
-
-    <h2>Etkinlik Ekle</h2>
+    <a href="{% url 'profile' %}"><span class="icon">+</span>Geri</a>
+    <h2>Not Ekle</h2>
     <form method="post" id="etkinlikForm">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Ekle</button>
+        <label for="id_title">Başlık:</label>
+        <input type="text" name="title" id="id_title" required><br>
+    
+        <label for="id_start_date">Başlangıç Tarihi:</label>
+        <input type="text" name="start_date" id="id_start_date" required><br>
+    
+        <label for="id_end_date">Bitiş Tarihi:</label>
+        <input type="text" name="end_date" id="id_end_date" required><br>
+    
+        <label for="id_description">Açıklama:</label>
+        <textarea name="description" id="id_description"></textarea><br>
+    
+        <button type="submit" id="addEventButton">Ekle</button>
     </form>
-
-    <!-- Etkinlik Düzenleme Modal -->
     <div id="editEventModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <span class="close" id="closeEditEventModal">&times;</span>
             <h2>Etkinliği Düzenle</h2>
             <form id="editEventForm">
                 {% csrf_token %}
-                {{ form.as_p }}
+                <input type="hidden" name="event_id" id="edit_event_id">
+                <label for="edit_id_title">Başlık:</label>
+                <input type="text" name="title" id="edit_id_title" required><br>
+    
+                <label for="edit_id_start_date">Başlangıç Tarihi:</label>
+                <input type="text" name="start_date" id="edit_id_start_date" required><br>
+    
+                <label for="edit_id_end_date">Bitiş Tarihi:</label>
+                <input type="text" name="end_date" id="edit_id_end_date" required><br>
+    
+                <label for="edit_id_description">Açıklama:</label>
+                <textarea name="description" id="edit_id_description"></textarea><br>
+                
                 <button type="submit">Kaydet</button>
             </form>
         </div>
@@ -106,88 +127,171 @@
     <!-- Etkinlik Detayları Modal -->
     <div id="detailsModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Etkinlik Detayları</h2>
+            <span class="close" id="closeDetailsModal">&times;</span>
+            <h2>Not Detayları</h2>
             <div id="eventDetails"></div>
+            <!-- Düzenle butonunu ekleyin -->
+            <button id="eventEditButton">Düzenle</button>
         </div>
     </div>
 
     <script src="{% static 'fullcalendar/core/main.js' %}"></script>
     <script src="{% static 'fullcalendar/daygrid/main.js' %}"></script>
     <script>
+        // Rastgele renk oluşturmak için bir işlev
+        function randomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+    
         document.addEventListener('DOMContentLoaded', function() {
             // Etkinlikleri yerel depolamadan çekmek
             var savedEtkinlikler = localStorage.getItem('etkinlikler');
             var etkinlikler = [];
-
+    
             if (savedEtkinlikler) {
                 etkinlikler = JSON.parse(savedEtkinlikler);
             }
-
+    
             var calendarEl = document.getElementById('takvim');
-
+    
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 plugins: ['dayGrid'],
-                events: etkinlikler,
+                events: function(info, successCallback, failureCallback) {
+                    // Etkinliklerin renklerini belirlemek için rastgele renkleri kullan
+                    etkinlikler.forEach(function(event) {
+                        event.backgroundColor = randomColor();
+                    });
+    
+                    successCallback(etkinlikler);
+                },
                 eventClick: function(info) {
                     var title = info.event.title;
                     var description = info.event.extendedProps.description;
-
+                    var eventId = info.event.id;
+    
                     // Etkinlik detaylarını görüntüleme modal penceresini açma
                     var detailsModal = document.getElementById('detailsModal');
                     var eventDetails = document.getElementById('eventDetails');
                     eventDetails.innerHTML = '<h3>' + title + '</h3><p>' + description + '</p>';
                     detailsModal.style.display = 'block';
+    
+                    // Düzenle butonunu etkinlik detaylarına ekleme
+                    var eventEditButton = document.getElementById('eventEditButton');
+                    eventEditButton.addEventListener('click', function() {
+                        // Düzenleme formunu doldur
+                        var event = calendar.getEventById(eventId);
+                        if (event) {
+                            document.getElementById('edit_event_id').value = event.id;
+                            document.getElementById('edit_id_title').value = event.title;
+                            document.getElementById('edit_id_start_date').value = formatDate(event.start);
+                            document.getElementById('edit_id_end_date').value = formatDate(event.end);
+                            document.getElementById('edit_id_description').value = event.extendedProps.description;
+    
+                            // Düzenleme penceresini aç
+                            var editEventModal = document.getElementById('editEventModal');
+                            editEventModal.style.display = 'block';
+    
+                            // Etkinlik detayları penceresini kapat
+                            detailsModal.style.display = 'none';
+                        }
+                    });
                 }
             });
-
+    
             calendar.render();
-
+    
             // Etkinlik ekleme formu
+            var addEventButton = document.getElementById('addEventButton');
             var form = document.getElementById('etkinlikForm');
             form.addEventListener('submit', function(event) {
                 event.preventDefault();
                 var title = document.querySelector('#id_title').value;
-                var start_date = document.querySelector('#id_start_date').value;
-                var end_date = document.querySelector('#id_end_date').value;
+                var start_date_input = document.querySelector('#id_start_date');
+                var end_date_input = document.querySelector('#id_end_date');
                 var description = document.querySelector('#id_description').value;
-
+    
+                // Gün, Ay ve Yıl bilgilerini al
+                var start_date_parts = start_date_input.value.split('.');
+                var end_date_parts = end_date_input.value.split('.');
+    
+                // Yıl, Ay ve Gün sıralamasını dikkate alarak başlangıç ve bitiş tarihlerini oluştur
+                var start_date = new Date(start_date_parts[2], start_date_parts[1] - 1, start_date_parts[0]);
+                var end_date = new Date(end_date_parts[2], end_date_parts[1] - 1, end_date_parts[0]);
+                end_date.setDate(end_date.getDate() + 1);
+    
                 var newEvent = {
+                    id: Date.now().toString(), // Benzersiz bir kimlik oluştur
                     title: title,
                     start: start_date,
                     end: end_date,
-                    description: description
+                    description: description,
+                    backgroundColor: randomColor() // Rastgele bir renk ata
                 };
-
+    
                 // Yeni etkinliği yerel depolamaya ekleyin
                 etkinlikler.push(newEvent);
                 localStorage.setItem('etkinlikler', JSON.stringify(etkinlikler));
-
+    
                 calendar.addEvent(newEvent);
-
+    
                 // Formu temizleme (isteğe bağlı)
                 form.reset();
             });
-
-            // Modal pencereleri kapatma işlevi
-            var modals = document.getElementsByClassName('modal');
-            for (var i = 0; i < modals.length; i++) {
-                var modal = modals[i];
-                modal.querySelector('.close').addEventListener('click', function() {
-                    modal.style.display = 'none';
-                });
-            }
-
-            // Sayfa dışına tıklandığında modal pencerelerini kapatma
-            window.addEventListener('click', function(event) {
-                for (var i = 0; i < modals.length; i++) {
-                    var modal = modals[i];
-                    if (event.target === modal) {
-                        modal.style.display = 'none';
-                    }
+    
+            // Etkinlik düzenleme formu
+            var editEventForm = document.getElementById('editEventForm');
+            editEventForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                var event_id = document.getElementById('edit_event_id').value;
+                var title = document.getElementById('edit_id_title').value;
+                var start_date = document.getElementById('edit_id_start_date').value;
+                var end_date = document.getElementById('edit_id_end_date').value;
+                var description = document.getElementById('edit_id_description').value;
+    
+                // Etkinliği güncelle
+                var event = calendar.getEventById(event_id);
+                if (event) {
+                    event.setProp('title', title);
+                    event.setProp('start', new Date(start_date));
+                    event.setProp('end', new Date(end_date));
+                    event.setExtendedProp('description', description);
+    
+                    // Yerel depolama ve düzenleme penceresini kapat
+                    updateLocalStorageEvents();
+                    document.getElementById('editEventModal').style.display = 'none';
                 }
             });
+    
+            // Etkinlik düzenlendikten sonra yerel depolama güncellemesi
+            function updateLocalStorageEvents() {
+                var updatedEvents = [];
+                calendar.getEvents().forEach(function(event) {
+                    updatedEvents.push({
+                        id: event.id,
+                        title: event.title,
+                        start: event.start,
+                        end: event.end,
+                        description: event.extendedProps.description,
+                        backgroundColor: event.backgroundColor,
+                    });
+                });
+                localStorage.setItem('etkinlikler', JSON.stringify(updatedEvents));
+            }
+    
+            // Tarih formatını düzenlemek için bir yardımcı işlev
+            function formatDate(date) {
+                var year = date.getFullYear();
+                var month = (date.getMonth() + 1).toString().padStart(2, '0');
+                var day = date.getDate().toString().padStart(2, '0');
+                return day + '.' + month + '.' + year;
+            }
         });
     </script>
+    
 </body>
 </html>

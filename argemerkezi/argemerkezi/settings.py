@@ -5,12 +5,10 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-=dou(mtz7=w73s3n@!r%vu&1vp(ga^0##8&@2aw-z%26#mflsc'
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -56,7 +54,6 @@ TEMPLATES = [
     },
 ]
 
-
 WSGI_APPLICATION = 'argemerkezi.wsgi.application'
 DATABASES = {
     'default': {
@@ -64,7 +61,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -96,6 +92,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True 
 
 AUTHENTICATION_BACKENDS = (
+    
     "allauth.account.auth_backends.AuthenticationBackend",
 )
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
@@ -108,7 +105,6 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 LOGGING_DIR = os.path.join(BASE_DIR, 'logs')  # Log dosyalarını kaydedeceğiniz dizin
 LOGGING_LEVEL = 'DEBUG'  # Loglama seviyesi (DEBUG, INFO, WARNING, ERROR, CRITICAL)
 LOGGING_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
-
 
 LOGGING = {
     'version': 1,

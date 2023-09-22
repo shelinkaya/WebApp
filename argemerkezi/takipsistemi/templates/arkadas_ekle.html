@@ -130,7 +130,7 @@
         
         <label for="username_or_email">Kullanıcı Adı veya E-posta:</label>
         <input type="text" name="username_or_email" required>
-        
+        <a href="{% url 'profile' %}"><span class="icon">+</span>Geri</a>
         <button type="submit">Arkadaşlık İsteği Gönder</button>
     </form>
     
@@ -150,12 +150,6 @@
         {% endfor %}
     </ul>
 
-    <h2>Gönderilen Arkadaşlık İstekleri</h2>
-    <ul>
-        {% for request in outgoing_requests %}
-            <li>{{ request.to_user }} - {% if not request.is_accepted %}Onay Bekliyor{% endif %}</li>
-        {% endfor %}
-    </ul>
     
     <div class="friends">
         <h2>Arkadaşlarım</h2>

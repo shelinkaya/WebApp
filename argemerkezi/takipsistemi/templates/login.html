@@ -61,6 +61,11 @@
             display: inline-block;
             margin-top: 20px;
         }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -73,13 +78,13 @@
         <form method="post" action="{% url 'login' %}">
             {% csrf_token %}
             <div class="form-group">
-                <label for="email">E-posta</label>
-                {{ form.email }}
+                <label for="email">E-posta:</label>
+                <input type="email" name="email" id="email" class="form-control" required autocomplete="email">
             </div>
             <div class="form-group">
-                <label for="password">Şifre</label>
-                {{ form.password }}
-            </div>
+                <label for="password">Şifre:</label>
+                <input type="password" name="password" id="password" class="form-control" required autocomplete="current-password">
+            </div>            
             <button type="submit" class="login-button">Giriş Yap</button>
         </form>
         <a href="{% url 'index' %}" class="back-button mt-3">Ana Sayfa'ya Dön</a>

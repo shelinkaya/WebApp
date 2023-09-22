@@ -4,8 +4,10 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import UserProfile 
 from .models import Note,Event, Message, Etkinlik
 from .models import Proje
-
-
+from django import forms
+from django.contrib.auth.models import User
+from .models import Message  
+  
 class CustomUserCreationForm(UserCreationForm):
     birth_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
     gender = forms.ChoiceField(choices=[('male', 'Erkek'), ('female', 'Kadın')])
@@ -34,9 +36,12 @@ class UserProfileForm(forms.ModelForm):
         model = UserProfile
         fields = ('user', 'name', 'birth_date', 'gender', 'contact_info', 'profile_picture', 'occupation', 'expertise', 'bio', 'accept_terms')
 
+from django.contrib.auth import authenticate
+
 class LoginForm(forms.Form):
     email = forms.EmailField(label='E-posta')
     password = forms.CharField(label='Şifre', widget=forms.PasswordInput)
+
 
 class ArkadasEkleForm(forms.Form):
     username_or_email = forms.CharField(label="Kullanıcı Adı veya E-posta", max_length=100)
@@ -50,10 +55,6 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = ['title', 'start_date', 'end_date', 'description']
-
-from django import forms
-from django.contrib.auth.models import User
-from .models import Message  # Message modelini projenizin models dosyasına uygun şekilde eklemelisiniz
 
 class MessageForm(forms.Form):
     recipient = forms.CharField(max_length=150)

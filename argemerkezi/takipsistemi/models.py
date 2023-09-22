@@ -81,8 +81,11 @@ class Message(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
+from django.db import models
+import uuid
 
 class Etkinlik(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=200)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
@@ -90,6 +93,7 @@ class Etkinlik(models.Model):
 
     def __str__(self):
         return self.title
+
 
 class Proje(models.Model):
     proje_adi = models.CharField(max_length=100)

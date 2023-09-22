@@ -30,7 +30,6 @@ from .models import Proje
 from .forms import ProjeForm
 from .models import GanttSema  # GanttSema modelini ekleyin
 
-
 def kadro(request):
     return render(request, 'kadro.html')
 
@@ -42,6 +41,12 @@ def hakkimizda_view(request):
 
 def tamamlanan_projeler(request):
     return render(request, 'tamamlanan_projeler.html')
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
+from .models import UserProfile
 
 def register(request):
     if request.method == 'POST':
@@ -64,35 +69,48 @@ def register(request):
             messages.error(request, 'Şifreler uyuşmuyor.')
         elif not accept_terms:
             messages.error(request, 'Koşulları ve gizlilik politikasını kabul etmelisiniz.')
+        elif not email.endswith('@allalci.com'):
+            messages.error(request, 'Sadece @allalci.com uzantılı e-posta adresleri kabul edilmektedir.')
         else:
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password,
-                first_name=first_name,
-                last_name=last_name
-            )
-            
-            # UserProfile modeline kaydet
-            user_profile = UserProfile.objects.create(
-                user=user,
-                name=f"{first_name} {last_name}",
-                birth_date=birth_date,
-                gender=gender,
-                contact_info=contact_info,
-                occupation=occupation,
-                expertise=expertise,
-                bio=bio
-            )
+            try:
+                # Şifreleri güvenli bir şekilde sakla
+                hashed_password = make_password(password)
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=hashed_password,
+                    first_name=first_name,
+                    last_name=last_name
+                )
+                
+                # UserProfile modeline kaydet
+                user_profile = UserProfile.objects.create(
+                    user=user,
+                    name=f"{first_name} {last_name}",
+                    birth_date=birth_date,
+                    gender=gender,
+                    contact_info=contact_info,
+                    occupation=occupation,
+                    expertise=expertise,
+                    bio=bio
+                )
 
-            messages.success(request, 'Kaydınız başarıyla oluşturuldu. Giriş yapabilirsiniz.')
-            return redirect('register')
+                messages.success(request, 'Kaydınız başarıyla oluşturuldu. Giriş yapabilirsiniz.')
+                return redirect('register')
+            except Exception as e:
+                messages.error(request, 'Kayıt işlemi sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.')
 
     return render(request, 'register.html')
+
 
 def gizlilik_politikasi(request):
     return render(request, 'gizlilikpolitikasi.html')
 
+from django.contrib.auth import authenticate, login
+
+from django.contrib.auth import authenticate, login
+from django.shortcuts import redirect
+logger = logging.getLogger(__name__)
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -114,9 +132,12 @@ def login_view(request):
     
     return render(request, 'login.html', {'form': form})
 
-#def profile(request):
-    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
-    return render(request, 'profil.html', {'user_profile': user_profile})
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+def logout_view(request):
+    logout(request)
+    return redirect('index')  # Çıkış yapıldıktan sonra ana sayfaya yönlendir
 
 def profile(request):
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -185,15 +206,6 @@ def arkadas_ekle_view(request):
     
     return render(request, 'arkadas_ekle.html', context)
 
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import FriendshipRequest, Message
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import Message, Chat
-from .forms import MessageForm
-
 def mesajlarim(request):
     # Arkadaşlarınızı ve mesajlarınızı almak için gerekli kodları ekleyin
     if request.method == 'POST':
@@ -228,9 +240,6 @@ def chat_page(request, chat_id):
     messages = Message.objects.filter(chat=chat)
 
     return render(request, 'chat_page.html', {'chat': chat, 'messages': messages})
-
-
-
 
 def message_reply(request, chat_id):
     print("Chat ID:", chat_id)

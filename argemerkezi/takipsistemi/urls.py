@@ -1,5 +1,4 @@
 # argemerkezi/takipsistemi/urls.py
-
 from django.urls import path
 from .views import CustomLoginView
 from . import views
@@ -29,4 +28,5 @@ urlpatterns = [
     path('takvim_gorunumu/', views.takvim_gorunumu, name='takvim_gorunumu'),
     path('proje_olustur/', views.proje_olustur, name='proje_olustur'),
     path('chat_page/<int:chat_id>/', views.chat_page, name='chat_page'),
+    path('logout/', views.logout_view, name='logout'),
 ]
