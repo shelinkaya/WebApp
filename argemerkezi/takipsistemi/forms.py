@@ -4,9 +4,8 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import UserProfile 
 from .models import Note,Event, Message, Etkinlik
 from .models import Proje
-from django import forms
-from django.contrib.auth.models import User
-from .models import Message  
+from .models import Chat
+from django.contrib.auth import authenticate
   
 class CustomUserCreationForm(UserCreationForm):
     birth_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
@@ -36,12 +35,9 @@ class UserProfileForm(forms.ModelForm):
         model = UserProfile
         fields = ('user', 'name', 'birth_date', 'gender', 'contact_info', 'profile_picture', 'occupation', 'expertise', 'bio', 'accept_terms')
 
-from django.contrib.auth import authenticate
-
 class LoginForm(forms.Form):
     email = forms.EmailField(label='E-posta')
     password = forms.CharField(label='Şifre', widget=forms.PasswordInput)
-
 
 class ArkadasEkleForm(forms.Form):
     username_or_email = forms.CharField(label="Kullanıcı Adı veya E-posta", max_length=100)
@@ -55,17 +51,6 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = ['title', 'start_date', 'end_date', 'description']
-
-from django import forms
-from django.contrib.auth.models import User
-from .models import Message
-# messaging/forms.py
-from django import forms
-from .models import Message
-from .models import Chat
-
-
-# forms.py
 
 class MessageForm(forms.ModelForm):
     recipient = forms.CharField(max_length=150)
@@ -105,9 +90,6 @@ class MessageForm(forms.ModelForm):
         except User.DoesNotExist:
             pass
         return None
-
-
-
 
 class EtkinlikForm(forms.ModelForm):
     class Meta:
