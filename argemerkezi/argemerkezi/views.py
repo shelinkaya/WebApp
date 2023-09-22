@@ -202,65 +202,60 @@ def arkadas_ekle_view(request):
     
     return render(request, 'arkadas_ekle.html', context)
 
+# messaging/views.py
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from takipsistemi.models import Chat, Message
+from takipsistemi.forms import MessageForm
+
+@login_required
 def mesajlarim(request):
-    # Arkadaşlarınızı ve mesajlarınızı almak için gerekli kodları ekleyin
+    # Var olan arkadaşları ve kullanıcının mesajlarını alın
+    my_friends = request.user.userprofile.friends.all()
+    chats = Chat.objects.filter(participants=request.user)
+    messages = Message.objects.filter(chat__in=chats).order_by('timestamp')
+
+    # Formu oluşturun
+    form = MessageForm()
+
     if request.method == 'POST':
-        form = MessageForm(request.POST, request.FILES, request=request)
+        form = MessageForm(request.POST)
         if form.is_valid():
-            recipient_username = form.cleaned_data['recipient']
-            content = form.cleaned_data['content']
-            media_file = form.cleaned_data['media_file']
-            sender = request.user  # Gönderen, giriş yapmış kullanıcıdır.
-            
-            # İşte burada yeni bir mesaj oluşturun
-            message = form.save_message(sender)
+            message = form.save(commit=False)
+            message.sender = request.user
+            message.chat = chats[0]  # Varsayılan olarak ilk sohbeti kullanabilirsiniz
+            message.save()
+            form = MessageForm()
 
-            # Yeni bir sohbet sayfası oluşturmak için mesajın olduğu sayfaya yönlendirin
-            if message:
-                return redirect('chat_page', chat_id=message.chat.id)
-            else:
-                messages.error(request, 'Mesaj gönderilemedi.')
-
-    else:
-        form = MessageForm(request=request)
-
-    context = {
-        # Gerekli bağlam verilerini ekleyin
-        'form': form,
-    }
-
-    return render(request, 'mesajlarim.html', context)
-
-def chat_page(request, chat_id):
-    chat = Chat.objects.get(id=chat_id)
-    messages = Message.objects.filter(chat=chat)
-
-    return render(request, 'chat_page.html', {'chat': chat, 'messages': messages})
+    return render(request, 'mesajlarim.html', {'my_friends': my_friends, 'chats': chats, 'messages': messages, 'form': form})
+# argemerkezi/views.py
+from django.shortcuts import render
+from django.http import HttpResponse
 
 def message_reply(request, chat_id):
-    print("Chat ID:", chat_id)
+    # Burada mesaj yanıtı görüntüleme işlemleri gerçekleştirilebilir
+    return HttpResponse(f'Mesaj yanıtı görüntüleme sayfası, chat_id: {chat_id}')
+
+@login_required
+def chat_page(request, chat_id):
+    chat = get_object_or_404(Chat, id=chat_id)
+    if request.user not in chat.participants.all():
+        return redirect('mesajlarim')
+
+    messages = Message.objects.filter(chat=chat).order_by('timestamp')
+    form = MessageForm()
+
     if request.method == 'POST':
-        form = MessageForm(request.POST, request.FILES, request=request)
+        form = MessageForm(request.POST)
         if form.is_valid():
-            content = form.cleaned_data['content']
-            media_file = form.cleaned_data['media_file']
-            logger.debug("content: %s", content)
-            logger.debug("media_file: %s", media_file)
+            message = form.save(commit=False)
+            message.sender = request.user
+            message.chat = chat
+            message.save()
+            form = MessageForm()
 
-            # chat_id'yi form verilerinden alın
-            chat_id = chat_id
+    return render(request, 'chat_page.html', {'chat': chat, 'messages': messages, 'form': form})
 
-            try:
-                selected_chat = Message.objects.get(id=chat_id)
-                
-                # Mesajın alıcı ve gönderen rollerini değiştirerek yanıt mesajı oluşturun
-                Message.objects.create(sender=request.user, recipient=selected_chat.sender, content=content, media_file=media_file)
-
-                messages.success(request, 'Mesajınız gönderildi.')
-            except Message.DoesNotExist:
-                messages.error(request, 'Mesaj bulunamadı.')
-
-            return redirect('mesajlarim')
 
 def proje_olustur(request):
     if request.method == 'POST':

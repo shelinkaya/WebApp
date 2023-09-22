@@ -56,41 +56,19 @@ class EventForm(forms.ModelForm):
         model = Event
         fields = ['title', 'start_date', 'end_date', 'description']
 
-class MessageForm(forms.Form):
-    recipient = forms.CharField(max_length=150)
-    content = forms.CharField(widget=forms.Textarea)
-    media_file = forms.FileField(required=False)
+from django import forms
+from django.contrib.auth.models import User
+from .models import Message
+# messaging/forms.py
+from django import forms
+from .models import Message
 
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super(MessageForm, self).__init__(*args, **kwargs)
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['content']
 
-    def clean_recipient(self):
-        recipient_username = self.cleaned_data.get('recipient')
-        try:
-            recipient_user = User.objects.get(username=recipient_username)
-        except User.DoesNotExist:
-            raise forms.ValidationError("Bu kullanıcı bulunamadı.")
-        return recipient_user
 
-    def clean(self):
-        cleaned_data = super().clean()
-        recipient_user = cleaned_data.get('recipient')
-        if recipient_user and recipient_user == self.request.user:
-            raise forms.ValidationError("Kendi kendinize mesaj gönderemezsiniz.")
-            
-    def save_message(self, sender):
-        recipient_username = self.cleaned_data['recipient']
-        content = self.cleaned_data['content']
-        media_file = self.cleaned_data['media_file']
-        try:
-            recipient = User.objects.get(username=recipient_username)
-            if recipient != sender:
-                message = Message.objects.create(sender=sender, recipient=recipient, content=content, media_file=media_file)
-                return message  # Oluşturulan mesajı döndür
-        except User.DoesNotExist:
-            pass
-        return None
 
 class EtkinlikForm(forms.ModelForm):
     class Meta:

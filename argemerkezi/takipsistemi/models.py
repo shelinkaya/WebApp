@@ -71,21 +71,31 @@ class FriendshipRequest(models.Model):
 
 # messaging/models.py
 
+from django.db import models
+from django.contrib.auth.models import User
+
+
 class Chat(models.Model):
-    participants = models.ManyToManyField(User)
+    participants = models.ManyToManyField(User, related_name='chats')
     title = models.CharField(max_length=255)
 
+    def __str__(self):
+        return self.title
+
 class Message(models.Model):
-    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
-    sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.sender.username} - {self.timestamp}"
+
 
 from django.db import models
 import uuid
 
 
-from django.db import models
 
 class Etkinlik(models.Model):
     title = models.CharField(max_length=200)  # title alanını nullable olarak bırakın

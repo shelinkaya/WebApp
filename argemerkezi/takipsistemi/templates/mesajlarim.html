@@ -1,8 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
-    <script src="{% static 'js/mesajlarim.js' %}"></script>
-
 <head>
     <title>Mesajlaşma Platformu</title>
     <style>
@@ -11,6 +9,7 @@
             margin: 0;
             padding: 0;
             background-color: #f0f0f0;
+            display: flex;
         }
 
         h1 {
@@ -18,6 +17,12 @@
             color: #fff;
             padding: 20px;
             text-align: center;
+            flex: 1;
+        }
+
+        .content {
+            flex: 2;
+            padding: 20px;
         }
 
         h2 {
@@ -56,6 +61,7 @@
             border: 1px solid #ddd;
             padding: 10px;
             margin: 10px 0;
+            color: #fff;
         }
 
         .emoji-selector {
@@ -80,44 +86,48 @@
 <body>
     <h1>Mesajlaşma Platformu</h1>
 
-    <h2>Arkadaşlarım</h2>
-    <ul>
-        {% for friend in my_friends %}
-            <li>
-                {{ friend.username }}
-            </li>
-        {% endfor %}
-    </ul>
+    <div class="content">
+        <h2>Arkadaşlarım</h2>
+        <ul>
+            {% for friend in my_friends %}
+                <li class="friend" data-username="{{ friend.username }}">
+                    {{ friend.username }}
+                </li>
+            {% endfor %}
+        </ul>
 
-    <h2>Mesaj Gönder</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.recipient.label_tag }} {{ form.recipient }}
-        {{ form.content.label_tag }} {{ form.content }}
-        {{ form.media_file.label_tag }} {{ form.media_file }}
-        <button type="submit">Gönder</button>
-    </form>
-    <h2>Mesajlarım</h2>
-<ul>
-    {% for chat in chats %}
-        <li>
-            <a href="{% url 'chat_page' chat_id=friend_chat_id %}">{{ friend.username }}</a>
+        <h2>Mesaj Gönder</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.recipient.label_tag }} {{ form.recipient }}
+            {{ form.content.label_tag }} {{ form.content }}
+            {{ form.media_file.label_tag }} {{ form.media_file }}
+            <button type="submit">Gönder</button>
+        </form>
 
-        </li>
-    {% endfor %}
-</ul>
+        <h2>Mesajlarım</h2>
+        <ul>
+            {% for chat in chats %}
+                <li>
+                    <a href="{% url 'chat_page' chat_id=chat.id %}">{{ chat.title }}</a>
+                </li>
+            {% endfor %}
+        </ul>
 
-<a href="{% url 'profile' %}"><span class="icon">+</span>Geri</a> 
-    <!-- Mesajlar gösterilebilir, bu kodu geliştirmek size kalmış -->
-    <h2>Mesajlarınız</h2>
-    <ul>
-        {% for message in messages %}
-            <li>
-                <strong>Gönderen:</strong> {{ message.sender.username }}<br>
-                <strong>Mesaj:</strong> {{ message.content }}<br>
-                <strong>Zaman:</strong> {{ message.timestamp }}
-            </li>
-        {% endfor %}
-    </ul>
+        <a href="{% url 'profile' %}"><span class="icon">+</span>Geri</a> 
+        <!-- Mesajlar gösterilebilir, bu kodu geliştirmek size kalmış -->
+        <h2>Mesajlarınız</h2>
+        <ul id="message-list">
+            {% for message in messages %}
+                <li class="message">
+                    <strong>Gönderen:</strong> {{ message.sender.username }}<br>
+                    <strong>Mesaj:</strong> {{ message.content }}<br>
+                    <strong>Zaman:</strong> {{ message.timestamp }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script src="{% static 'js/mesajlarim.js' %}"></script>
 </body>
 </html>
