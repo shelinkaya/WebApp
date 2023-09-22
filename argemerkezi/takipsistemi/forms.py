@@ -62,11 +62,50 @@ from .models import Message
 # messaging/forms.py
 from django import forms
 from .models import Message
+from .models import Chat
+
+
+# forms.py
 
 class MessageForm(forms.ModelForm):
+    recipient = forms.CharField(max_length=150)
+    
     class Meta:
         model = Message
-        fields = ['content']
+        fields = ['recipient', 'content', 'media_file']
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(MessageForm, self).__init__(*args, **kwargs)
+
+    def clean_recipient(self):
+        recipient_username = self.cleaned_data.get('recipient')
+        try:
+            recipient_user = User.objects.get(username=recipient_username)
+        except User.DoesNotExist:
+            raise forms.ValidationError("Bu kullanıcı bulunamadı.")
+        return recipient_user
+
+    def clean(self):
+        cleaned_data = super().clean()
+        recipient_user = cleaned_data.get('recipient')
+        if recipient_user and recipient_user == self.request.user:
+            raise forms.ValidationError("Kendi kendinize mesaj gönderemezsiniz.")
+        
+    def save_message(self, sender):
+        recipient_username = self.cleaned_data['recipient']
+        content = self.cleaned_data['content']
+        media_file = self.cleaned_data['media_file']
+        try:
+            recipient = User.objects.get(username=recipient_username)
+            if recipient != sender:
+                chat, created = Chat.objects.get_or_create(participants__in=[sender, recipient])
+                message = Message.objects.create(chat=chat, sender=sender, recipient=recipient, content=content, media_file=media_file)
+                return message
+        except User.DoesNotExist:
+            pass
+        return None
+
 
 
 

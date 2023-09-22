@@ -97,7 +97,7 @@
         </ul>
 
         <h2>Mesaj Gönder</h2>
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.recipient.label_tag }} {{ form.recipient }}
             {{ form.content.label_tag }} {{ form.content }}
@@ -116,16 +116,7 @@
 
         <a href="{% url 'profile' %}"><span class="icon">+</span>Geri</a> 
         <!-- Mesajlar gösterilebilir, bu kodu geliştirmek size kalmış -->
-        <h2>Mesajlarınız</h2>
-        <ul id="message-list">
-            {% for message in messages %}
-                <li class="message">
-                    <strong>Gönderen:</strong> {{ message.sender.username }}<br>
-                    <strong>Mesaj:</strong> {{ message.content }}<br>
-                    <strong>Zaman:</strong> {{ message.timestamp }}
-                </li>
-            {% endfor %}
-        </ul>
+        
     </div>
 
     <script src="{% static 'js/mesajlarim.js' %}"></script>

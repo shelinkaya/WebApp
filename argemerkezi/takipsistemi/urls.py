@@ -5,6 +5,7 @@ from . import views
 from django.contrib import admin
 from django.conf import settings
 from .views import mesajlarim
+from django.conf.urls.static import static
 urlpatterns = [
     path('', views.index, name='index'),
     path('admin/', admin.site.urls),
@@ -32,4 +33,9 @@ urlpatterns = [
     path('add_event/', views.add_event, name='add_event'),
     path('delete_event/<int:event_id>/', views.delete_event, name='delete_event'),
     
-]
+] 
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

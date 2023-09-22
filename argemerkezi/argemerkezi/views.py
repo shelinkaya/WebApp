@@ -12,9 +12,7 @@ from takipsistemi.forms import LoginForm
 from django.core.files.storage import FileSystemStorage  
 from django.http import JsonResponse
 from django.views.generic import TemplateView
-from takipsistemi.forms import NotForm
 from takipsistemi.models import Note
-from takipsistemi.models import FriendshipRequest
 from django.db.models import Q
 from datetime import datetime, timedelta
 from takipsistemi.forms import ArkadasEkleForm, NotForm, EventForm
@@ -23,11 +21,14 @@ from takipsistemi.models import FriendshipRequest, Message, Etkinlik
 from takipsistemi.forms import MessageForm, EtkinlikForm
 import logging
 from takipsistemi.models import Chat
-logger = logging.getLogger(__name__)
 from django.core.exceptions import PermissionDenied
 from takipsistemi.models import Proje
 from takipsistemi.forms import ProjeForm
 from takipsistemi.models import GanttSema  
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth import logout
+from django.http import HttpResponse
+logger = logging.getLogger(__name__)
 
 def kadro(request):
     return render(request, 'kadro.html')
@@ -40,12 +41,6 @@ def hakkimizda_view(request):
 
 def tamamlanan_projeler(request):
     return render(request, 'tamamlanan_projeler.html')
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import User
-from takipsistemi.models import UserProfile
 
 def register(request):
     if request.method == 'POST':
@@ -101,15 +96,8 @@ def register(request):
 
     return render(request, 'register.html')
 
-
 def gizlilik_politikasi(request):
     return render(request, 'gizlilikpolitikasi.html')
-
-from django.contrib.auth import authenticate, login
-
-from django.contrib.auth import authenticate, login
-from django.shortcuts import redirect
-logger = logging.getLogger(__name__)
 
 def login_view(request):
     if request.method == 'POST':
@@ -132,15 +120,9 @@ def login_view(request):
     
     return render(request, 'login.html', {'form': form})
 
-from django.contrib.auth import logout
-from django.shortcuts import redirect
-
 def logout_view(request):
     logout(request)
     return redirect('index')  # Çıkış yapıldıktan sonra ana sayfaya yönlendir
-
-
-
 
 def profile(request):
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -202,40 +184,49 @@ def arkadas_ekle_view(request):
     
     return render(request, 'arkadas_ekle.html', context)
 
-# messaging/views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from takipsistemi.models import Chat, Message
-from takipsistemi.forms import MessageForm
-
 @login_required
 def mesajlarim(request):
-    # Var olan arkadaşları ve kullanıcının mesajlarını alın
+    # Kullanıcının arkadaşlarını alın
     my_friends = request.user.userprofile.friends.all()
+
+    # Kullanıcının sohbetlerini alın
     chats = Chat.objects.filter(participants=request.user)
-    messages = Message.objects.filter(chat__in=chats).order_by('timestamp')
 
-    # Formu oluşturun
-    form = MessageForm()
-
+    # Mesaj gönderme formunu işleyin
     if request.method == 'POST':
-        form = MessageForm(request.POST)
+        form = MessageForm(request.POST, request.FILES, request=request)
         if form.is_valid():
-            message = form.save(commit=False)
-            message.sender = request.user
-            message.chat = chats[0]  # Varsayılan olarak ilk sohbeti kullanabilirsiniz
-            message.save()
-            form = MessageForm()
+            recipient = form.cleaned_data['recipient']
+            content = form.cleaned_data['content']
+            media_file = form.cleaned_data['media_file']
 
-    return render(request, 'mesajlarim.html', {'my_friends': my_friends, 'chats': chats, 'messages': messages, 'form': form})
-# argemerkezi/views.py
-from django.shortcuts import render
-from django.http import HttpResponse
+            # Gönderen ve alıcı arasında sohbeti al veya oluştur
+            chat, created = Chat.objects.get_or_create(participants=request.user)
+            if not created:
+                other_user = form.cleaned_data['recipient']
+                chat.participants.add(other_user)
+
+            # Mesajı oluştur
+            message = Message.objects.create(chat=chat, sender=request.user, content=content, media_file=media_file)
+
+            return redirect('chat_page', chat_id=message.chat.id)
+
+    else:
+        form = MessageForm()
+
+    # Kullanıcının aldığı mesajları alın
+    messages = Message.objects.filter(chat__participants=request.user).order_by('-timestamp')
+
+    return render(request, 'mesajlarim.html', {
+        'my_friends': my_friends,
+        'form': form,
+        'chats': chats,
+        'messages': messages,
+    })
 
 def message_reply(request, chat_id):
     # Burada mesaj yanıtı görüntüleme işlemleri gerçekleştirilebilir
     return HttpResponse(f'Mesaj yanıtı görüntüleme sayfası, chat_id: {chat_id}')
-
 @login_required
 def chat_page(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
@@ -255,7 +246,6 @@ def chat_page(request, chat_id):
             form = MessageForm()
 
     return render(request, 'chat_page.html', {'chat': chat, 'messages': messages, 'form': form})
-
 
 def proje_olustur(request):
     if request.method == 'POST':
@@ -312,10 +302,6 @@ def start_chat(request, recipient_username):
     
     return redirect('chat_detail', chat_id=new_chat.id)
 
-from django.shortcuts import render, redirect, get_object_or_404
-from takipsistemi.models import Etkinlik
-from takipsistemi.forms import EtkinlikForm
-
 def takvim_gorunumu(request):
     etkinlikler = Etkinlik.objects.all()
     form = EtkinlikForm()
@@ -341,8 +327,6 @@ def delete_event(request, event_id):
         except Etkinlik.DoesNotExist:
             return JsonResponse({'success': False})
     return JsonResponse({'success': False})
-
-
 
 def chat_detail(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id)

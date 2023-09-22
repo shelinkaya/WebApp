@@ -15,21 +15,21 @@ from django.views.generic import TemplateView
 from .models import Note
 from .models import Event
 from datetime import datetime, timedelta
-from .models import FriendshipRequest
 from django.db.models import Q
 from .forms import ArkadasEkleForm, NotForm, EventForm
 from django.contrib.auth.decorators import login_required
-from .models import FriendshipRequest, Message
 from .forms import MessageForm, EtkinlikForm
-from .models import UserProfile, FriendshipRequest, Message, Etkinlik
+from .models import FriendshipRequest, Message, Etkinlik
 import logging
 from .models import Chat
-logger = logging.getLogger(__name__)
 from django.core.exceptions import PermissionDenied
 from .models import Proje
 from .forms import ProjeForm
 from .models import GanttSema  # GanttSema modelini ekleyin
-
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth import logout
+from django.http import HttpResponse
+logger = logging.getLogger(__name__)
 def kadro(request):
     return render(request, 'kadro.html')
 
@@ -41,12 +41,6 @@ def hakkimizda_view(request):
 
 def tamamlanan_projeler(request):
     return render(request, 'tamamlanan_projeler.html')
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import User
-from .models import UserProfile
 
 def register(request):
     if request.method == 'POST':
@@ -102,15 +96,9 @@ def register(request):
 
     return render(request, 'register.html')
 
-
 def gizlilik_politikasi(request):
     return render(request, 'gizlilikpolitikasi.html')
 
-from django.contrib.auth import authenticate, login
-
-from django.contrib.auth import authenticate, login
-from django.shortcuts import redirect
-logger = logging.getLogger(__name__)
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -131,9 +119,6 @@ def login_view(request):
         form = LoginForm()
     
     return render(request, 'login.html', {'form': form})
-
-from django.contrib.auth import logout
-from django.shortcuts import redirect
 
 def logout_view(request):
     logout(request)
@@ -205,41 +190,49 @@ def arkadas_ekle_view(request):
     }
     
     return render(request, 'arkadas_ekle.html', context)
-
-# messaging/views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from .models import Chat, Message
-from .forms import MessageForm
-
 @login_required
 def mesajlarim(request):
-    # Var olan arkadaşları ve kullanıcının mesajlarını alın
+    # Kullanıcının arkadaşlarını alın
     my_friends = request.user.userprofile.friends.all()
+
+    # Kullanıcının sohbetlerini alın
     chats = Chat.objects.filter(participants=request.user)
-    messages = Message.objects.filter(chat__in=chats).order_by('timestamp')
 
-    # Formu oluşturun
-    form = MessageForm()
-
+    # Mesaj gönderme formunu işleyin
     if request.method == 'POST':
-        form = MessageForm(request.POST)
+        form = MessageForm(request.POST, request.FILES, request=request)
         if form.is_valid():
-            message = form.save(commit=False)
-            message.sender = request.user
-            message.chat = chats[0]  # Varsayılan olarak ilk sohbeti kullanabilirsiniz
-            message.save()
-            form = MessageForm()
+            recipient = form.cleaned_data['recipient']
+            content = form.cleaned_data['content']
+            media_file = form.cleaned_data['media_file']
 
-    return render(request, 'mesajlarim.html', {'my_friends': my_friends, 'chats': chats, 'messages': messages, 'form': form})
-# argemerkezi/views.py
-from django.shortcuts import render
-from django.http import HttpResponse
+            # Gönderen ve alıcı arasında sohbeti al veya oluştur
+            chat, created = Chat.objects.get_or_create(participants=request.user)
+            if not created:
+                other_user = form.cleaned_data['recipient']
+                chat.participants.add(other_user)
+
+            # Mesajı oluştur
+            message = Message.objects.create(chat=chat, sender=request.user, content=content, media_file=media_file)
+
+            return redirect('chat_page', chat_id=message.chat.id)
+
+    else:
+        form = MessageForm()
+
+    # Kullanıcının aldığı mesajları alın
+    messages = Message.objects.filter(chat__participants=request.user).order_by('-timestamp')
+
+    return render(request, 'mesajlarim.html', {
+        'my_friends': my_friends,
+        'form': form,
+        'chats': chats,
+        'messages': messages,
+    })
 
 def message_reply(request, chat_id):
     # Burada mesaj yanıtı görüntüleme işlemleri gerçekleştirilebilir
     return HttpResponse(f'Mesaj yanıtı görüntüleme sayfası, chat_id: {chat_id}')
-
 @login_required
 def chat_page(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
@@ -311,10 +304,6 @@ def chat_detail(request, chat_id):
     
     return render(request, 'chat_detail.html', context)
 
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Etkinlik
-from .forms import EtkinlikForm
-
 def takvim_gorunumu(request):
     etkinlikler = Etkinlik.objects.all()
     form = EtkinlikForm()
@@ -340,8 +329,6 @@ def delete_event(request, event_id):
         except Etkinlik.DoesNotExist:
             return JsonResponse({'success': False})
     return JsonResponse({'success': False})
-
-
 
 def proje_olustur(request):
     if request.method == 'POST':
