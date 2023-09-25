@@ -96,18 +96,23 @@ class EtkinlikForm(forms.ModelForm):
         model = Etkinlik
         fields = ['title', 'start_date', 'end_date', 'description']
 
-class ProjeForm(forms.ModelForm):
-    # Diğer alanlar burada bulunur
+# forms.py
 
+from django import forms
+from django.contrib.auth.models import User
+from .models import Proje
+
+class ProjeForm(forms.ModelForm):
     projede_calisacak_kisiler = forms.ModelMultipleChoiceField(
-        queryset=User.objects.all(),  # Tüm kullanıcıları listeleyin veya projede çalışacak kişilerin bulunduğu bir queryset kullanabilirsiniz
-        widget=forms.CheckboxSelectMultiple,  # Checkbox kullanarak çoklu seçim yapılmasını sağlar
-        required=False,  # Bu alanın zorunlu olmadığını belirtir
+        queryset=User.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
     )
 
     class Meta:
         model = Proje
         fields = ['proje_adi', 'proje_sahibi', 'proje_amaci', 'baslangic_tarihi', 'bitis_tarihi', 'projede_calisacak_kisiler']
+
 
 
 class AssignmentForm(forms.ModelForm):

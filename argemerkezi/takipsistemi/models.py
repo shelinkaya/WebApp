@@ -31,13 +31,19 @@ class UserProfile(models.Model):
         return self.user.username
     notes = models.TextField(blank=True, null=True)
 
+# models.py
+
+from django.db import models
+from django.contrib.auth.models import User
+
 class Project(models.Model):
     name = models.CharField(max_length=200)
     summary = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField()
-    owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='owned_projects')
-    assigned_users = models.ManyToManyField(UserProfile, blank=True, related_name='assigned_projects')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_projects')
+    assigned_users = models.ManyToManyField(User, blank=True, related_name='assigned_projects')
+
 
 
 class Assignment(models.Model):
@@ -123,3 +129,9 @@ class Proje(models.Model):
 class GanttSema(models.Model):
     proje = models.ForeignKey(Proje, on_delete=models.CASCADE)
     gantt_data = models.JSONField()  # JSON olarak Gantt verilerini saklamak için
+
+# models.py
+
+from django.db import models
+from django.contrib.auth.models import User
+
