@@ -1,21 +1,42 @@
-<!-- templates/proje_olustur.html -->
-<form method="POST" action="{% url 'proje_olustur' %}">
-    {% csrf_token %}
-    <label for="proje_adi">Proje Adı:</label>
-    <input type="text" id="proje_adi" name="proje_adi" required><br>
-    
-    <label for="proje_sahibi">Proje Sahibi:</label>
-    <input type="text" id="proje_sahibi" name="proje_sahibi" required><br>
-    
-    <label for="proje_amaci">Proje Amacı:</label>
-    <textarea id="proje_amaci" name="proje_amaci" required></textarea><br>
-    
-    <label for="baslangic_tarihi">Başlangıç Tarihi:</label>
-    <input type="date" id="baslangic_tarihi" name="baslangic_tarihi" required><br>
-    
-    <label for="bitis_tarihi">Bitiş Tarihi:</label>
-    <input type="date" id="bitis_tarihi" name="bitis_tarihi" required><br>
-    <a href="{% url 'profile' %}"><span class="icon">+</span>Geri</a>
-    <input type="submit" value="İlerle">
-</form>
+<!-- templates/profil.html -->
+<div class="container">
+    <!-- Profil kartı burada görüntüleniyor -->
 
+    <!-- Proje Oluşturma Formu -->
+    <div class="create-project-form">
+        <h2>Proje Oluştur</h2>
+        <form method="POST" action="{% url 'proje_olustur' %}">
+            {% csrf_token %}
+            <label for="proje_adi">Proje Adı:</label>
+            <input type="text" id="proje_adi" name="proje_adi" required><br>
+
+            <label for="proje_sahibi">Proje Sahibi:</label>
+            <input type="text" id="proje_sahibi" name="proje_sahibi" required><br>
+
+            <label for="proje_amaci">Proje Amacı:</label>
+            <textarea id="proje_amaci" name="proje_amaci" required></textarea><br>
+
+            <label for="baslangic_tarihi">Başlangıç Tarihi:</label>
+            <input type="date" id="baslangic_tarihi" name="baslangic_tarihi" required><br>
+
+            <label for="bitis_tarihi">Bitiş Tarihi:</label>
+            <input type="date" id="bitis_tarihi" name="bitis_tarihi" required><br>
+
+            <!-- Arkadaşlarınızı listeleyin -->
+            <label for="friends">Projede Çalışacak Kişiler:</label>
+            <select id="friends" name="friends" multiple required>
+                {% for friend in friends %}
+                    <option value="{{ friend.user.username }}">{{ friend.user.username }}</option>
+                {% endfor %}
+            </select><br>
+
+            <!-- Adam/Ay Oranı Girişi -->
+            <label for="adam_ay_values">Adam/Ay Oranları:</label>
+            <input type="text" id="adam_ay_values" name="adam_ay_values" required><br>
+
+            <input type="submit" value="Proje Oluştur">
+        </form>
+    </div>
+
+    <!-- Diğer profil bilgileri burada görüntüleniyor -->
+</div>

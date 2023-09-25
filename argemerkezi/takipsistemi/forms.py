@@ -97,12 +97,29 @@ class EtkinlikForm(forms.ModelForm):
         fields = ['title', 'start_date', 'end_date', 'description']
 
 class ProjeForm(forms.ModelForm):
+    # Diğer alanlar burada bulunur
+
+    projede_calisacak_kisiler = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),  # Tüm kullanıcıları listeleyin veya projede çalışacak kişilerin bulunduğu bir queryset kullanabilirsiniz
+        widget=forms.CheckboxSelectMultiple,  # Checkbox kullanarak çoklu seçim yapılmasını sağlar
+        required=False,  # Bu alanın zorunlu olmadığını belirtir
+    )
+
     class Meta:
         model = Proje
-        fields = ['proje_adi', 'proje_sahibi', 'proje_amaci', 'baslangic_tarihi', 'bitis_tarihi']
+        fields = ['proje_adi', 'proje_sahibi', 'proje_amaci', 'baslangic_tarihi', 'bitis_tarihi', 'projede_calisacak_kisiler']
+
 
 class AssignmentForm(forms.ModelForm):
+    # Diğer alanlar burada bulunur
+
+    # Seçilen her bir kişi için ayrı ayrı adam/ay oranı alanları
+    adam_ay_oranlari = forms.DecimalField(
+        label="Adam/Ay Oranı",
+        help_text="Seçili kişiler için ayrı ayrı adam/ay oranı belirtin.",
+        widget=forms.NumberInput(attrs={'step': '0.01'}),  # İstenen hassasiyete göre ayarlayabilirsiniz
+    )
+
     class Meta:
         model = Assignment
-        fields = ['assigned_to', 'adam_ay_orani']
-
+        fields = ['assigned_to', 'adam_ay_oranlari']

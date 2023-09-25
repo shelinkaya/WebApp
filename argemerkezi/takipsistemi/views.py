@@ -350,6 +350,9 @@ def delete_event(request, event_id):
             return JsonResponse({'success': False})
     return JsonResponse({'success': False})
 
+from django.shortcuts import render
+from .models import Proje, GanttSema
+
 def proje_olustur(request):
     if request.method == 'POST':
         form = ProjeForm(request.POST)
@@ -368,7 +371,62 @@ def proje_olustur(request):
                 # Örnek: { id: 1, text: "Görev 1", start_date: baslangic_tarihi, duration: 5 },
             ]
 
+            # Gantt verilerini GanttSema modeline kaydedin
+            gantt_sema = GanttSema(proje=proje, gantt_data=gantt_data)
+            gantt_sema.save()
+
             return render(request, 'gantt_sayfasi.html', {'gantt_data': gantt_data})
     else:
         form = ProjeForm()
     return render(request, 'proje_olustur.html', {'form': form})
+
+
+from django.shortcuts import render, redirect
+from .models import Project, UserProfile, Assignment
+
+from django.db import transaction
+
+@transaction.atomic
+def create_project(request):
+    if request.method == 'POST':
+        # Formdan verileri al
+        project_name = request.POST.get('proje_adi')
+        project_owner = request.POST.get('proje_sahibi')
+        project_purpose = request.POST.get('proje_amaci')
+        start_date = request.POST.get('baslangic_tarihi')
+        end_date = request.POST.get('bitis_tarihi')
+        friends = request.POST.getlist('friends')  # Seçilen arkadaşların listesi
+        adam_ay_values = request.POST.getlist('adam_ay_values')  # Kullanıcının girdiği adam/ay oranları
+
+        # Proje oluştur
+        project = Proje.objects.create(proje_adi=project_name, proje_sahibi=project_owner, proje_amaci=project_purpose,
+                                       baslangic_tarihi=start_date, bitis_tarihi=end_date)
+
+        # Atamaları yap
+        for friend, adam_ay in zip(friends, adam_ay_values):
+            # Arkadaşın UserProfile'ını al
+            friend_profile = UserProfile.objects.get(user__username=friend)
+
+            # Girdiği adam/ay oranını kontrol et
+            if float(adam_ay) <= 0 or float(adam_ay) > friend_profile.total_adam_ay:
+                # Hata mesajı göster ve atama yapma
+                error_message = f"Hatalı adam/ay oranı: {adam_ay}"
+                return render(request, 'proje_olustur.html', {'error_message': error_message})
+
+            # Atama yap
+            assignment = Assignment.objects.create(project=project, assigned_to=friend_profile, adam_ay_orani=adam_ay)
+
+            # Kullanıcının kalan adam/ay oranını güncelle
+            friend_profile.total_adam_ay -= float(adam_ay)
+            friend_profile.save()
+
+        # Projeyi ve atamaları kaydet
+        project.save()
+
+        return redirect('projelerim')  # Başka bir sayfaya yönlendirme
+
+    else:
+        # Sayfayı göster
+        user_profile = UserProfile.objects.get(user=request.user)
+        friends = user_profile.friends.all()
+        return render(request, 'proje_olustur.html', {'friends': friends})
