@@ -11,6 +11,7 @@ GENDER_CHOICES = [
 ]
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    adam_ay_orani = models.FloatField(default=1.0)
     name = models.CharField(max_length=100)
     birth_date = models.DateField(default=datetime.date.today)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='other')
@@ -35,11 +36,12 @@ class Project(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    assigned_users = models.ManyToManyField(UserProfile, through='Assignment')
 
 class Assignment(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     assigned_to = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    allocation = models.FloatField(default=0.0)
+    adam_ay_orani = models.FloatField(default=0.0)
 
 class Note(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -140,6 +140,8 @@ def profile(request):
     
     return redirect('arkadas_ekle')  # İstenilen sayfaya yönlendirme yapabilirsiniz
 
+
+
 def accept_request(request, request_id):
     friend_request = get_object_or_404(FriendshipRequest, id=request_id, to_user=request.user, is_accepted=False)
     friend_request.is_accepted = True

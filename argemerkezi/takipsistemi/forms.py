@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import UserProfile 
 from .models import Note,Event, Message, Etkinlik
 from .models import Proje
-from .models import Chat
+from .models import Chat, Assignment
 from django.contrib.auth import authenticate
   
 class CustomUserCreationForm(UserCreationForm):
@@ -100,3 +100,9 @@ class ProjeForm(forms.ModelForm):
     class Meta:
         model = Proje
         fields = ['proje_adi', 'proje_sahibi', 'proje_amaci', 'baslangic_tarihi', 'bitis_tarihi']
+
+class AssignmentForm(forms.ModelForm):
+    class Meta:
+        model = Assignment
+        fields = ['assigned_to', 'adam_ay_orani']
+
