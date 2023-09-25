@@ -35,8 +35,9 @@ class Project(models.Model):
     summary = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField()
-    owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    assigned_users = models.ManyToManyField(UserProfile, through='Assignment')
+    owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='owned_projects')
+    assigned_users = models.ManyToManyField(UserProfile, blank=True, related_name='assigned_projects')
+
 
 class Assignment(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
