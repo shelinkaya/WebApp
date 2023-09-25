@@ -275,6 +275,9 @@ def chat_page(request, chat_id):
 
 from django.shortcuts import render
 
+from django.contrib.auth.decorators import login_required
+
+@login_required
 def proje_olustur(request):
     if request.method == 'POST':
         form = ProjeForm(request.POST)
@@ -300,7 +303,17 @@ def proje_olustur(request):
             return render(request, 'gantt_sayfasi.html', {'gantt_data': gantt_data})
     else:
         form = ProjeForm()
-    return render(request, 'proje_olustur.html', {'form': form})
+
+    # Arkadaşları getir
+    my_friends = request.user.userprofile.friends.all()
+
+    context = {
+        'form': form,
+        'friends': my_friends,  # Arkadaşları context'e ekleyin
+    }
+    return render(request, 'proje_olustur.html', context)
+
+
 
 def projelerim(request):
     projeler = Proje.objects.all()  # Tüm projeleri al
@@ -385,6 +398,7 @@ from takipsistemi.models import Project, UserProfile, Assignment
 from django.db import transaction
 
 @transaction.atomic
+
 def create_project(request):
     if request.method == 'POST':
         # Formdan verileri al
@@ -393,7 +407,7 @@ def create_project(request):
         project_purpose = request.POST.get('proje_amaci')
         start_date = request.POST.get('baslangic_tarihi')
         end_date = request.POST.get('bitis_tarihi')
-        friends = request.POST.getlist('friends')  # Seçilen arkadaşların listesi
+        friends = request.POST.getlist('calisacak_kisiler')  # Seçilen arkadaşların listesi
         adam_ay_values = request.POST.getlist('adam_ay_values')  # Kullanıcının girdiği adam/ay oranları
 
         # Proje oluştur
@@ -408,7 +422,7 @@ def create_project(request):
             # Girdiği adam/ay oranını kontrol et
             if float(adam_ay) <= 0 or float(adam_ay) > friend_profile.total_adam_ay:
                 # Hata mesajı göster ve atama yapma
-                error_message = f"Hatalı adam/ay oranı: {adam_ay}"
+                error_message = f"{friend_profile.user.username} için hatalı adam/ay oranı: {adam_ay}"
                 return render(request, 'proje_olustur.html', {'error_message': error_message})
 
             # Atama yap
