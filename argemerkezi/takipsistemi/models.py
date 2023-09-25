@@ -12,6 +12,7 @@ GENDER_CHOICES = [
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     adam_ay_orani = models.FloatField(default=1.0)
+    total_adam_ay = models.FloatField(default=1.0)
     name = models.CharField(max_length=100)
     birth_date = models.DateField(default=datetime.date.today)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='other')

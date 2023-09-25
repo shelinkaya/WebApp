@@ -124,6 +124,7 @@ def logout_view(request):
     logout(request)
     return redirect('index')  # Çıkış yapıldıktan sonra ana sayfaya yönlendir
 
+
 def profile(request):
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
     
@@ -132,6 +133,31 @@ def profile(request):
         return redirect('calendar') 
 
     return render(request, 'profil.html', {'user_profile': user_profile})
+
+    friend_request = get_object_or_404(FriendshipRequest, id=request_id, to_user=request.user, is_accepted=False)
+    
+    # Arkadaşlık isteğini reddetme işlemi (isteği silme)
+    friend_request.delete()
+    
+    return redirect('arkadas_ekle')  # İstenilen sayfaya yönlendirme yapabilirsiniz
+
+from django.db import transaction
+
+def assign_project(user_profile, project, adam_ay):
+    # Bu işlemi bir işlem (transaction) içinde yapmak için kullanılır.
+    with transaction.atomic():
+        # 1. Kullanıcının toplam adam/ay oranını güncelle
+        user_profile.total_adam_ay -= adam_ay
+        user_profile.save()
+
+        # 2. Proje atamasını oluştur
+        assignment = Assignment.objects.create(project=project, assigned_to=user_profile, allocation=adam_ay)
+
+        # 3. Projenin toplam adam/ay oranını güncelle
+        project.total_adam_ay += adam_ay
+        project.save()
+
+        return assignment
 
 def accept_request(request, request_id):
     friend_request = get_object_or_404(FriendshipRequest, id=request_id, to_user=request.user, is_accepted=False)

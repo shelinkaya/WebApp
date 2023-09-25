@@ -140,6 +140,24 @@ def profile(request):
     
     return redirect('arkadas_ekle')  # İstenilen sayfaya yönlendirme yapabilirsiniz
 
+from django.db import transaction
+
+def assign_project(user_profile, project, adam_ay):
+    # Bu işlemi bir işlem (transaction) içinde yapmak için kullanılır.
+    with transaction.atomic():
+        # 1. Kullanıcının toplam adam/ay oranını güncelle
+        user_profile.total_adam_ay -= adam_ay
+        user_profile.save()
+
+        # 2. Proje atamasını oluştur
+        assignment = Assignment.objects.create(project=project, assigned_to=user_profile, allocation=adam_ay)
+
+        # 3. Projenin toplam adam/ay oranını güncelle
+        project.total_adam_ay += adam_ay
+        project.save()
+
+        return assignment
+
 
 
 def accept_request(request, request_id):
