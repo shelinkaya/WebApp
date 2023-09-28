@@ -1,7 +1,4 @@
-<!-- templates/profil.html -->
 <div class="container">
-    <!-- Profil kartı burada görüntüleniyor -->
-
     <!-- Proje Oluşturma Formu -->
     <div class="create-project-form">
         <h2>Proje Oluştur</h2>
@@ -9,41 +6,68 @@
             {% csrf_token %}
             <label for="proje_adi">Proje Adı:</label>
             <input type="text" id="proje_adi" name="proje_adi" required><br>
-        
+
             <label for="proje_sahibi">Proje Sahibi:</label>
             <input type="text" id="proje_sahibi" name="proje_sahibi" required><br>
-        
+
             <label for="proje_amaci">Proje Amacı:</label>
             <textarea id="proje_amaci" name="proje_amaci" required></textarea><br>
-        
+
             <label for="baslangic_tarihi">Başlangıç Tarihi:</label>
             <input type="date" id="baslangic_tarihi" name="baslangic_tarihi" required><br>
-        
+
             <label for="bitis_tarihi">Bitiş Tarihi:</label>
             <input type="date" id="bitis_tarihi" name="bitis_tarihi" required><br>
-        
-            <!-- Arkadaşlarınızı listeleyin -->
-            
-        
+
+            <!-- Projede çalışacak kişileri seçme -->
+            <label for="projede_calisacak_kisiler">Projede Çalışacak Kişiler:</label>
+            <select id="projede_calisacak_kisiler" name="projede_calisacak_kisiler" multiple>
+                {% for friend in friends %}
+                    <option value="{{ friend.id }}">{{ friend.username }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Projede çalışacak kişilere adam/ay oranı girme -->
+            <div id="projede_calisacak_kisiler_oranlar">
+                <!-- Burada dinamik olarak kişi sayısını ve oran alanlarını oluşturacaksınız -->
+            </div>
+
+            <!-- Yeni kişi ekleme butonu -->
+            <button type="button" id="yeni_kisi_ekle">Yeni Kişi Ekle</button>
+
             <input type="submit" value="Proje Oluştur">
         </form>
-        
     </div>
+
     <!-- Arkadaşları görüntülemek için -->
-<!-- Arkadaşları görüntülemek için -->
-<div class="friends">
-    
-    <h2>Arkadaşlarım</h2>
+    <div class="friends">
+        <h2>Arkadaşlarım</h2> 
         <ul>
-            {% for friend in my_friends %}
-                <li class="friend" data-username="{{ friend.username }}">
-                    {{ friend.username }}
-                </li>
+            {% for friend in friends %}
+                <li>{{ friend.username }}</li>
+            {% empty %}
+                <li>Henüz arkadaşınız yok.</li>
             {% endfor %}
         </ul>
+    </div>
 </div>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const yeniKisiEkleButonu = document.getElementById("yeni_kisi_ekle");
+        const projedeCalisacakKisilerOranlar = document.getElementById("projede_calisacak_kisiler_oranlar");
 
+        yeniKisiEkleButonu.addEventListener("click", function() {
+            const yeniKisiOranSatiri = document.createElement("div");
+            yeniKisiOranSatiri.classList.add("proje-calisacak-kisi-oran");
+            yeniKisiOranSatiri.innerHTML = `
+                <label for="id_username">Kullanıcı Adı:</label>
+                <input type="text" name="username" required>
+                <label for="id_adam_ay_orani">Çalışacağı Adam/Ay Oranı:</label>
+                <input type="number" name="adam_ay_orani" step="0.01" required>
+            `;
 
-    <!-- Diğer profil bilgileri burada görüntüleniyor -->
-</div>
+            projedeCalisacakKisilerOranlar.appendChild(yeniKisiOranSatiri);
+        });
+    });
+</script>

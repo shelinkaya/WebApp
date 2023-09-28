@@ -128,3 +128,10 @@ class AssignmentForm(forms.ModelForm):
     class Meta:
         model = Assignment
         fields = ['assigned_to', 'adam_ay_oranlari']
+
+from django import forms
+from django.contrib.auth.models import User
+
+class ProjeCalisacakKisiForm(forms.Form):
+    username = forms.CharField(label="Kullanıcı Adı")
+    adam_ay_orani = forms.DecimalField(label="Çalışacağı Adam/Ay Oranı", widget=forms.NumberInput(attrs={'step': '0.01'}))

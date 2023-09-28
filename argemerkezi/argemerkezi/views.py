@@ -276,42 +276,81 @@ def chat_page(request, chat_id):
 from django.shortcuts import render
 
 from django.contrib.auth.decorators import login_required
-
+from django.shortcuts import render, redirect
+from takipsistemi.models import Proje
+from takipsistemi.forms import ProjeForm
+from takipsistemi.models import UserProfile
+from django.http import HttpResponse
 @login_required
+
+
+
+
 def proje_olustur(request):
     if request.method == 'POST':
         form = ProjeForm(request.POST)
         if form.is_valid():
+            # Diğer proje bilgilerini kaydedin
             proje = form.save(commit=False)
-            # Proje verilerini kaydedin
+
+            # Projede çalışacak kişileri alın
+            calisacak_kisiler = []
+            total_adam_ay = 0.0
+
+            for i in range(1, 15):  # İhtiyaca göre kişi sayısını ayarlayın
+                username = request.POST.get(f'username_{i}')
+                adam_ay_orani = request.POST.get(f'adam_ay_orani_{i}')
+
+                if username and adam_ay_orani:
+                    adam_ay_orani = float(adam_ay_orani)
+
+                    # Kullanıcının mevcut adam/ay oranını alın
+                    try:
+                        user_profile = UserProfile.objects.get(user__username=username)
+                        mevcut_adam_ay = user_profile.adam_ay_orani
+                    except UserProfile.DoesNotExist:
+                        mevcut_adam_ay = 0.0
+
+                    # Yeterli adam/ay oranı kalmadıysa hata mesajı gösterin
+                    if mevcut_adam_ay < adam_ay_orani:
+                        form.add_error(None, f"{username} için yetersiz adam/ay oranı.")
+                        return render(request, 'proje_olustur.html', {'form': form})
+
+                    calisacak_kisiler.append({'username': username, 'adam_ay_orani': adam_ay_orani})
+                    total_adam_ay += adam_ay_orani
+
+            # Projede çalışacak kişilerin adam/ay oranlarını güncelleyin
+            for calisan in calisacak_kisiler:
+                username = calisan['username']
+                adam_ay_orani = calisan['adam_ay_orani']
+                user_profile = UserProfile.objects.get(user__username=username)
+                user_profile.adam_ay_orani -= adam_ay_orani
+                user_profile.save()
+
+            # Proje toplam adam/ay oranını güncelleyin
+            proje.total_adam_ay = total_adam_ay
             proje.save()
 
-            # Formdan başlangıç ve bitiş tarihlerini alın
-            baslangic_tarihi = form.cleaned_data['baslangic_tarihi']
-            bitis_tarihi = form.cleaned_data['bitis_tarihi']
+            # Kullanıcının adam/ay oranını güncelleyin
+            current_user_profile = UserProfile.objects.get(user=request.user)
+            current_user_profile.adam_ay_orani -= total_adam_ay
+            current_user_profile.save()
 
-            # Başlangıç ve bitiş tarihlerine göre Gantt verilerini oluşturun
-            gantt_data = [
-                # Gantt şemasına eklemek istediğiniz görevleri ve zaman çizelgesi verilerini buraya ekleyin
-                # Örnek: { id: 1, text: "Görev 1", start_date: baslangic_tarihi, duration: 5 },
-            ]
-
-            # Gantt verilerini GanttSema modeline kaydedin
-            gantt_sema = GanttSema(proje=proje, gantt_data=gantt_data)
-            gantt_sema.save()
-
-            return render(request, 'gantt_sayfasi.html', {'gantt_data': gantt_data})
+            return render(request, 'gantt_sayfasi.html')
     else:
         form = ProjeForm()
 
-    # Arkadaşları getir
-    my_friends = request.user.userprofile.friends.all()
-
     context = {
         'form': form,
-        'friends': my_friends,  # Arkadaşları context'e ekleyin
     }
     return render(request, 'proje_olustur.html', context)
+
+
+
+
+
+
+
 
 
 
